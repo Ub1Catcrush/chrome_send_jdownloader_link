@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>JDownloader Link Sender</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #0e0f13; --surface: #161820; --border: #2a2d3a;
+      --accent:  #f97316; --accent2: #38bdf8;
+      --text:    #e2e4ed; --muted:   #6b7280;
+      --success: #22c55e; --error:   #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: var(--bg); color: var(--text);
+      width: 320px; padding: 16px;
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .brand { display: flex; align-items: center; gap: 8px; }
+    .logo {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, var(--accent), #fb923c);
+      border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+    .brand-text { font-size: 13px; font-weight: 600; }
+    .brand-sub  { font-size: 11px; color: var(--muted); }
+    .settings-btn {
+      color: var(--muted); font-size: 18px; background: none; border: none;
+      cursor: pointer; transition: color .15s; line-height: 1;
+    }
+    .settings-btn:hover { color: var(--accent); }
+
+    .url-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 9px 12px;
+      font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted);
+      word-break: break-all; max-height: 48px; overflow: hidden;
+      margin-bottom: 12px; line-height: 1.4;
+    }
+
+    .section-label {
+      font-size: 10px; font-weight: 600; letter-spacing: .07em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 7px;
+    }
+    .btn-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+
+    .send-btn {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text); font-family: inherit; font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all .15s; width: 100%; text-align: left;
+    }
+    .send-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .send-btn:disabled { opacity: .55; cursor: not-allowed; }
+    .send-btn .icon { font-size: 15px; flex-shrink: 0; }
+    .send-btn .label { flex: 1; }
+    .send-btn .via { font-size: 10px; color: var(--muted); font-weight: 400; }
+    .send-btn.loading .spinner {
+      display: inline-block; width: 12px; height: 12px;
+      border: 2px solid currentColor; border-top-color: transparent;
+      border-radius: 50%; animation: spin .6s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .send-btn.ok   { border-color: var(--success) !important; color: var(--success) !important; }
+    .send-btn.fail { border-color: var(--error) !important; color: var(--error) !important; }
+
+    /* Inline status message under each button */
+    .btn-status {
+      font-size: 11px; padding: 5px 14px 0;
+      color: var(--muted); display: none; word-break: break-word;
+    }
+    .btn-status.show { display: block; }
+    .btn-status.ok   { color: var(--success); }
+    .btn-status.err  { color: var(--error); }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 9px 0; }
+    .hint { font-size: 11px; color: var(--muted); line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">⬇</div>
+      <div>
+        <div class="brand-text">JDownloader</div>
+        <div class="brand-sub">Link Sender</div>
+      </div>
+    </div>
+    <button class="settings-btn" id="btn-settings" title="Einstellungen">⚙</button>
+  </header>
+
+  <div class="url-box" id="current-url">Lade URL…</div>
+
+  <div class="section-label">Aktuelle Seite senden</div>
+  <div class="btn-group">
+    <div>
+      <button class="send-btn" id="send-myjd">
+        <span class="icon">🌐</span>
+        <span class="label">Via MyJDownloader</span>
+        <span class="via">api.jdownloader.org</span>
+      </button>
+      <div class="btn-status" id="status-myjd"></div>
+    </div>
+    <div>
+      <button class="send-btn" id="send-direct">
+        <span class="icon">🖥️</span>
+        <span class="label">Direkt senden</span>
+        <span class="via" id="direct-label">localhost:9666</span>
+      </button>
+      <div class="btn-status" id="status-direct"></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <div class="hint">Rechtsklick auf einen Link → Kontextmenü-Optionen.</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

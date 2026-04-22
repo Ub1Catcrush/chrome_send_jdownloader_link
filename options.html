@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>JDownloader Link Sender – Einstellungen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #0e0f13;
+      --surface:  #161820;
+      --surface2: #1c1e27;
+      --border:   #2a2d3a;
+      --accent:   #f97316;
+      --accent2:  #38bdf8;
+      --text:     #e2e4ed;
+      --muted:    #6b7280;
+      --success:  #22c55e;
+      --warn:     #eab308;
+      --error:    #ef4444;
+      --radius:   6px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 24px;
+    }
+    .container { max-width: 700px; margin: 0 auto; }
+
+    header {
+      display: flex; align-items: center; gap: 14px; margin-bottom: 40px;
+    }
+    .logo {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--accent), #fb923c);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0;
+    }
+    header h1 { font-size: 20px; font-weight: 600; letter-spacing: -.3px; }
+    header p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    /* Tabs */
+    .tabs {
+      display: flex; gap: 2px; margin-bottom: 24px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 4px;
+    }
+    .tab {
+      flex: 1; padding: 9px 16px; border: none; background: none;
+      color: var(--muted); font-family: inherit; font-size: 13px; font-weight: 500;
+      cursor: pointer; border-radius: 4px; transition: all .15s;
+    }
+    .tab.active { background: var(--bg); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+    .tab:hover:not(.active) { color: var(--text); }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* Cards */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px; margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 11px; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+    .field { margin-bottom: 16px; }
+    .field:last-child { margin-bottom: 0; }
+    label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+    label span { color: var(--muted); font-weight: 400; font-size: 12px; }
+
+    input[type="text"], input[type="email"], input[type="password"], input[type="number"] {
+      width: 100%; padding: 9px 12px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text);
+      font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+      outline: none; transition: border-color .15s;
+    }
+    input:focus { border-color: var(--accent); }
+    input::placeholder { color: var(--muted); }
+
+    .info {
+      background: rgba(56,189,248,.07); border: 1px solid rgba(56,189,248,.2);
+      border-radius: var(--radius); padding: 12px 14px;
+      font-size: 12px; color: var(--accent2); line-height: 1.6; margin-bottom: 16px;
+    }
+    .info strong { font-weight: 600; }
+    code { font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+
+    hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+    /* Buttons */
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    .btn {
+      padding: 9px 18px; border: none; border-radius: var(--radius);
+      font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: all .15s; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-primary  { background: var(--accent); color: #fff; }
+    .btn-primary:hover:not(:disabled)  { background: #ea6505; }
+    .btn-secondary { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+    .btn-secondary:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .btn-blue { background: rgba(56,189,248,.12); border: 1px solid rgba(56,189,248,.25); color: var(--accent2); }
+    .btn-blue:hover:not(:disabled) { background: rgba(56,189,248,.22); }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block; width: 12px; height: 12px;
+      border: 2px solid currentColor; border-top-color: transparent;
+      border-radius: 50%; animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Result / feedback boxes */
+    .result-box {
+      margin-top: 14px; border-radius: var(--radius); font-size: 12.5px;
+      padding: 12px 14px; line-height: 1.6; display: none;
+    }
+    .result-box.show { display: block; }
+    .result-box.ok   { background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.25); color: var(--success); }
+    .result-box.err  { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.25); color: var(--error); }
+    .result-box.warn { background: rgba(234,179,8,.08); border: 1px solid rgba(234,179,8,.25); color: var(--warn); }
+
+    /* Device list */
+    .device-list { list-style: none; margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+    .device-item {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 9px 12px;
+      display: flex; align-items: center; gap: 10px; cursor: pointer;
+      transition: border-color .15s;
+    }
+    .device-item:hover { border-color: var(--accent2); }
+    .device-item.selected { border-color: var(--accent); }
+    .device-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+    .device-dot.online { background: var(--success); box-shadow: 0 0 5px var(--success); }
+    .device-name { font-size: 13px; font-weight: 500; flex: 1; }
+    .device-id   { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); }
+    .device-use  { font-size: 11px; color: var(--accent2); }
+
+    /* Save status */
+    .actions { display: flex; gap: 10px; margin-top: 28px; align-items: center; }
+    .save-status {
+      margin-left: auto; font-size: 12px; font-weight: 500;
+      padding: 5px 12px; border-radius: 20px; opacity: 0; transition: opacity .3s;
+    }
+    .save-status.show { opacity: 1; }
+    .save-status.ok  { background: rgba(34,197,94,.12); color: var(--success); border: 1px solid rgba(34,197,94,.3); }
+    .save-status.err { background: rgba(239,68,68,.12); color: var(--error); border: 1px solid rgba(239,68,68,.3); }
+
+    .footnote { font-size: 11px; color: var(--muted); text-align: center; margin-top: 32px; }
+    .footnote a { color: var(--accent2); text-decoration: none; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">⬇</div>
+    <div>
+      <h1>JDownloader Link Sender</h1>
+      <p>Einstellungen · v1.1.0</p>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="myjd">🌐 MyJDownloader</button>
+    <button class="tab" data-tab="direct">🖥️ Direkte Verbindung</button>
+  </div>
+
+  <!-- ── MyJDownloader Tab ── -->
+  <div class="panel active" id="tab-myjd">
+    <div class="info">
+      <strong>MyJDownloader</strong> – Verbindet sich über <code>api.jdownloader.org</code> mit deiner JDownloader-Instanz.<br>
+      Dein JDownloader muss unter <em>Einstellungen → MyJDownloader</em> eingerichtet und verbunden sein.
+    </div>
+
+    <div class="card">
+      <div class="card-title">Account</div>
+
+      <div class="field">
+        <label for="myjd-email">E-Mail <span>(MyJDownloader-Account)</span></label>
+        <input type="email" id="myjd-email" placeholder="meine@email.de" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="myjd-password">Passwort</label>
+        <input type="password" id="myjd-password" placeholder="••••••••" autocomplete="new-password">
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-blue" id="btn-test-myjd">🔌 Verbindung testen &amp; Geräte laden</button>
+      </div>
+
+      <div class="result-box" id="myjd-result"></div>
+    </div>
+
+    <div class="card" id="device-card" style="display:none">
+      <div class="card-title">Gerät auswählen</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">
+        Klicke auf ein Gerät um es zu verwenden, oder lasse das Feld leer für das erste verfügbare.
+      </p>
+      <ul class="device-list" id="device-list"></ul>
+
+      <hr>
+      <div class="field" style="margin-top:12px">
+        <label for="myjd-device">Gewähltes Gerät <span>(Name oder ID, leer = automatisch)</span></label>
+        <input type="text" id="myjd-device" placeholder="Mein JDownloader">
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Direct Tab ── -->
+  <div class="panel" id="tab-direct">
+    <div class="info">
+      <strong>Direkte Verbindung</strong> – Sendet Links über das <em>RemoteControl</em>-Plugin von JDownloader.<br>
+      Aktiviere es unter: <em>JDownloader → Einstellungen → Erweiterungen → RemoteControl</em> (Standard-Port: <code>9666</code>).
+    </div>
+
+    <div class="card">
+      <div class="card-title">Verbindung</div>
+
+      <div class="field">
+        <label for="direct-host">Host / IP-Adresse</label>
+        <input type="text" id="direct-host" placeholder="localhost">
+      </div>
+      <div class="field">
+        <label for="direct-port">Port</label>
+        <input type="number" id="direct-port" placeholder="9666" min="1" max="65535" style="width:140px">
+      </div>
+
+      <hr>
+
+      <div class="field">
+        <label for="direct-user">Benutzername <span>(optional)</span></label>
+        <input type="text" id="direct-user" placeholder="jdownloader" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="direct-password">Passwort <span>(optional)</span></label>
+        <input type="password" id="direct-password" placeholder="••••••••" autocomplete="new-password">
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-blue" id="btn-test-direct">🔌 Verbindung testen</button>
+      </div>
+
+      <div class="result-box" id="direct-result"></div>
+    </div>
+  </div>
+
+  <!-- ── Save ── -->
+  <div class="actions">
+    <button class="btn btn-primary" id="btn-save">💾 Einstellungen speichern</button>
+    <button class="btn btn-secondary" id="btn-reset">Zurücksetzen</button>
+    <span class="save-status" id="save-status"></span>
+  </div>
+
+  <p class="footnote">
+    JDownloader Link Sender · v1.1.0 ·
+    <a href="https://my.jdownloader.org" target="_blank">my.jdownloader.org</a>
+  </p>
+
+</div>
+<script src="options.js"></script>
+</body>
+</html>
