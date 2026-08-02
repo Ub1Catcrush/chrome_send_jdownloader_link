@@ -1,0 +1,149 @@
+name: Release Extension
+
+# Manueller Trigger: Actions-Tab -> "Release Extension" -> "Run workflow"
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Versions-Bump (wird ignoriert, wenn 'version' gesetzt ist)"
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      version:
+        description: "Optional: exakte Version setzen (z.B. 1.2.0) - überschreibt 'bump'"
+        required: false
+        default: ""
+      publish_crx:
+        description: "Zusätzlich signiertes .crx + update.xml für self-hosted Auto-Update erzeugen"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      MANIFEST_PATH: manifest.json
+      # Nur diese Dateien/Ordner gehören in die Extension - README/LICENSE/.github raus
+      EXT_FILES: "manifest.json popup.html popup.js options.html options.js background.js aes.js icons"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Aktuelle Version lesen
+        id: current
+        run: |
+          CURRENT=$(jq -r '.version' "$MANIFEST_PATH")
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+
+      - name: Neue Version berechnen
+        id: newver
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            NEW="${{ inputs.version }}"
+          else
+            IFS='.' read -r MAJOR MINOR PATCH <<< "${{ steps.current.outputs.current }}"
+            MAJOR=${MAJOR:-0}; MINOR=${MINOR:-0}; PATCH=${PATCH:-0}
+            case "${{ inputs.bump }}" in
+              major) MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0 ;;
+              minor) MINOR=$((MINOR+1)); PATCH=0 ;;
+              patch) PATCH=$((PATCH+1)) ;;
+            esac
+            NEW="$MAJOR.$MINOR.$PATCH"
+          fi
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+          echo "Neue Version: $NEW"
+
+      - name: manifest.json aktualisieren
+        run: |
+          jq --arg v "${{ steps.newver.outputs.new }}" '.version = $v' "$MANIFEST_PATH" > tmp.json
+          mv tmp.json "$MANIFEST_PATH"
+
+      - name: Änderung committen & taggen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$MANIFEST_PATH"
+          git commit -m "chore: release v${{ steps.newver.outputs.new }}"
+          git tag "v${{ steps.newver.outputs.new }}"
+          git push origin HEAD:main
+          git push origin "v${{ steps.newver.outputs.new }}"
+
+      - name: Extension in dist/ zusammenstellen und zippen
+        run: |
+          mkdir -p dist
+          cp -r $EXT_FILES dist/
+          cd dist
+          zip -r "../extension-v${{ steps.newver.outputs.new }}.zip" .
+          cd ..
+
+      # ---------------------------------------------------------------
+      # Optionaler Teil: signiertes .crx + update.xml fürs self-hosted
+      # Auto-Update. Braucht einmalig ein Repo-Secret CRX_PRIVATE_KEY:
+      #   openssl genrsa -out key.pem 2048
+      #   -> Inhalt von key.pem als Secret "CRX_PRIVATE_KEY" anlegen
+      # ---------------------------------------------------------------
+      - name: Chrome installieren
+        if: ${{ inputs.publish_crx == true }}
+        uses: browser-actions/setup-chrome@v1
+
+      - name: .crx signieren
+        if: ${{ inputs.publish_crx == true }}
+        run: |
+          if [ -z "${{ secrets.CRX_PRIVATE_KEY }}" ]; then
+            echo "::error::Secret CRX_PRIVATE_KEY fehlt. Siehe Kommentar im Workflow."
+            exit 1
+          fi
+          echo "${{ secrets.CRX_PRIVATE_KEY }}" > key.pem
+          google-chrome --pack-extension=dist --pack-extension-key=key.pem
+          mv "dist.crx" "extension-v${{ steps.newver.outputs.new }}.crx"
+
+      - name: Extension-ID aus Key berechnen
+        if: ${{ inputs.publish_crx == true }}
+        id: extid
+        run: |
+          ID=$(openssl rsa -in key.pem -pubout -outform DER 2>/dev/null \
+            | openssl dgst -sha256 -binary \
+            | head -c 16 | od -An -tx1 | tr -d ' \n' | tr '0-9a-f' 'a-p')
+          echo "id=$ID" >> "$GITHUB_OUTPUT"
+          echo "Extension-ID: $ID"
+          rm -f key.pem
+
+      - name: update.xml erzeugen und committen
+        if: ${{ inputs.publish_crx == true }}
+        run: |
+          REPO="${GITHUB_REPOSITORY}"
+          VER="${{ steps.newver.outputs.new }}"
+          ID="${{ steps.extid.outputs.id }}"
+          CODEBASE="https://github.com/${REPO}/releases/download/v${VER}/extension-v${VER}.crx"
+          cat > update.xml <<EOF
+          <?xml version='1.0' encoding='UTF-8'?>
+          <gupdate xmlns='http://www.google.com/update2/response' protocol='2.0'>
+            <app appid='${ID}'>
+              <updatecheck codebase='${CODEBASE}' version='${VER}' />
+            </app>
+          </gupdate>
+          EOF
+          git add update.xml
+          git commit -m "chore: update.xml für v${VER}" || echo "keine Änderung"
+          git push origin HEAD:main
+
+      - name: GitHub Release erstellen
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ steps.newver.outputs.new }}"
+          name: "v${{ steps.newver.outputs.new }}"
+          fail_on_unmatched_files: false
+          files: |
+            extension-v${{ steps.newver.outputs.new }}.zip
+            extension-v${{ steps.newver.outputs.new }}.crx
