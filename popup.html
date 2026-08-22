@@ -81,6 +81,27 @@
 
     .divider { border: none; border-top: 1px solid var(--border); margin: 9px 0; }
     .hint { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+    .origin-list {
+      display: flex; flex-direction: column; gap: 4px;
+      max-height: 130px; overflow-y: auto; margin-bottom: 8px;
+    }
+    .origin-item {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 5px; padding: 6px 8px; cursor: pointer;
+    }
+    .origin-item input { accent-color: var(--accent); flex-shrink: 0; }
+    .origin-item span {
+      font-family: 'IBM Plex Mono', monospace; font-size: 10.5px;
+      color: var(--text); word-break: break-all;
+    }
+    .origin-actions { display: flex; gap: 5px; margin-bottom: 4px; }
+    .origin-actions .send-btn { padding: 8px 10px; font-size: 12px; }
+    .link-small {
+      background: none; border: none; color: var(--accent2);
+      font-size: 10.5px; cursor: pointer; padding: 0; text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -115,6 +136,35 @@
       </button>
       <div class="btn-status" id="status-direct"></div>
     </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Blob-URLs auf dieser Seite</div>
+  <div class="btn-group">
+    <div>
+      <button class="send-btn" id="scan-blobs">
+        <span class="icon">🔍</span>
+        <span class="label">Seite nach blob: durchsuchen</span>
+      </button>
+      <div class="btn-status" id="status-scan"></div>
+    </div>
+  </div>
+
+  <div id="blob-results" style="display:none;">
+    <div class="section-label">Gefundene Quellen <button class="link-small" id="select-all-origins">alle</button> / <button class="link-small" id="select-none-origins">keine</button></div>
+    <div class="origin-list" id="blob-origin-list"></div>
+    <div class="origin-actions">
+      <button class="send-btn" id="send-blobs-myjd">
+        <span class="icon">🌐</span>
+        <span class="label">Via MyJDownloader</span>
+      </button>
+      <button class="send-btn" id="send-blobs-direct">
+        <span class="icon">🖥️</span>
+        <span class="label">Direkt</span>
+      </button>
+    </div>
+    <div class="btn-status" id="status-blobs"></div>
   </div>
 
   <hr class="divider">
