@@ -84,7 +84,7 @@
 
     .origin-list {
       display: flex; flex-direction: column; gap: 4px;
-      max-height: 130px; overflow-y: auto; margin-bottom: 8px;
+      max-height: 210px; overflow-y: auto; margin-bottom: 8px;
     }
     .origin-item {
       display: flex; align-items: center; gap: 7px;
@@ -96,6 +96,11 @@
       font-family: 'IBM Plex Mono', monospace; font-size: 10.5px;
       color: var(--text); word-break: break-all;
     }
+    .seg-toggle {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 10.5px; color: var(--muted); margin-bottom: 6px; cursor: pointer;
+    }
+    .seg-toggle input { accent-color: var(--accent); }
     .origin-actions { display: flex; gap: 5px; margin-bottom: 4px; }
     .origin-actions .send-btn { padding: 8px 10px; font-size: 12px; }
     .link-small {
@@ -140,12 +145,12 @@
 
   <hr class="divider">
 
-  <div class="section-label">Blob-URLs auf dieser Seite</div>
+  <div class="section-label">Medien auf dieser Seite</div>
   <div class="btn-group">
     <div>
       <button class="send-btn" id="scan-blobs">
         <span class="icon">🔍</span>
-        <span class="label">Seite nach blob: durchsuchen</span>
+        <span class="label">Nach Videos &amp; blob: durchsuchen</span>
       </button>
       <div class="btn-status" id="status-scan"></div>
     </div>
@@ -153,6 +158,7 @@
 
   <div id="blob-results" style="display:none;">
     <div class="section-label">Gefundene Quellen <button class="link-small" id="select-all-origins">alle</button> / <button class="link-small" id="select-none-origins">keine</button></div>
+    <label class="seg-toggle"><input type="checkbox" id="show-segments"> HLS/DASH-Segmente (.ts/.m4s) anzeigen</label>
     <div class="origin-list" id="blob-origin-list"></div>
     <div class="origin-actions">
       <button class="send-btn" id="send-blobs-myjd">
@@ -168,7 +174,7 @@
   </div>
 
   <hr class="divider">
-  <div class="hint">Rechtsklick auf einen Link → Kontextmenü-Optionen.</div>
+  <div class="hint">Der Scan durchsucht DOM, Seitenquelltext und Netzwerk-Requests nach .m3u8/.mpd/.mp4/.mkv/.mp3 usw. Tipp: Video kurz starten und danach scannen — Streams tauchen oft erst beim Abspielen auf.<br>Rechtsklick auf einen Link → Kontextmenü-Optionen.</div>
 
   <script src="popup.js"></script>
 </body>

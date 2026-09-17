@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "JDownloader Link Sender",
-  "version": "1.2.1",
-  "description": "Send links to JDownloader via MyJDownloader or direct connection",
+  "version": "1.3.0",
+  "description": "Send links, videos and streams (.mp4, .m3u8, .mpd, blob:) to JDownloader via MyJDownloader or direct connection",
   "permissions": [
     "contextMenus",
     "storage",
